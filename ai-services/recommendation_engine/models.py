@@ -5,9 +5,9 @@ from typing import Optional
 class UserProfile(BaseModel):
     userId: int
     name: str
-    interests: list[str]          # e.g. ["Electronics", "Men's Clothing"]
-    browsingHistory: list[int]    # product IDs viewed
-    searchHistory: list[str]      # raw search terms
+    interests: list[str]
+    browsingHistory: list[int]
+    searchHistory: list[str]
     latitude: Optional[float] = None
     longitude: Optional[float] = None
     city: Optional[str] = None
@@ -19,9 +19,9 @@ class Product(BaseModel):
     title: str
     description: str
     category: str
-    conditionGrade: str           # A | B | C | D
-    conditionType: str            # RETURNED | REFURBISHED
-    lifeScore: int                # 0-100
+    conditionGrade: str
+    conditionType: str
+    lifeScore: int
     price: float
     originalPrice: float
     rating: float
@@ -36,17 +36,17 @@ class Product(BaseModel):
 
 class RecommendedProduct(BaseModel):
     product: Product
-    matchScore: float             # 0-100 %
-    matchReasons: list[str]       # human-readable explanation
+    matchScore: float
+    matchReasons: list[str]
     distanceKm: Optional[float] = None
-    resolvedAtKm: Optional[int] = None  # 25 | 50 | 100 | None = nationwide
+    resolvedAtKm: Optional[int] = None
 
 
 class RecommendationResponse(BaseModel):
     userId: int
     totalRecommendations: int
     recommendations: list[RecommendedProduct]
-    resolvedAtKm: Optional[int] = None  # ring used for this response
+    resolvedAtKm: Optional[int] = None
 
 
 class NearbyUser(BaseModel):

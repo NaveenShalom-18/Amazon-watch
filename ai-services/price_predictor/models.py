@@ -14,9 +14,9 @@ class PricePredictionResponse(BaseModel):
     recommended_price: float
     price_floor: float
     price_ceiling: float
-    depreciation_rate: float        # 0.0–1.0, how much value was lost
-    demand_adjustment: float        # multiplier applied for demand
-    condition_multiplier: float     # multiplier applied for grade
-    age_decay_factor: float         # multiplier applied for age
-    confidence: float               # 0.0–1.0 prediction confidence
+    depreciation_rate: float
+    demand_adjustment: float
+    condition_multiplier: float
+    age_decay_factor: float
+    confidence: float
     summary: str

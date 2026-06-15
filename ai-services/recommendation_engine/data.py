@@ -1,6 +1,4 @@
-from app.models import UserProfile, Product
-
-# ── Products (matches Product entity: category, conditionGrade, lifeScore, etc.) ─
+from recommendation_engine.models import UserProfile, Product
 
 PRODUCTS: list[Product] = [
     Product(id=1,  title="Sony WH-1000XM4 Wireless Headphones",         description="Premium noise-cancelling wireless headphones with 30-hour battery and multi-device pairing",                                category="Electronics",        conditionGrade="A", conditionType="REFURBISHED", lifeScore=94, price=199.99, originalPrice=349.99, rating=4.7, reviewCount=2340, imageUrl="https://fakestoreapi.com/img/61IBBVJvSDL._AC_SY879_.jpg",            aiVerified=True),
@@ -27,39 +25,12 @@ PRODUCTS: list[Product] = [
 
 PRODUCTS_BY_ID: dict[int, Product] = {p.id: p for p in PRODUCTS}
 
-# ── User Profiles ─────────────────────────────────────────────────────────────
-
 USERS: list[UserProfile] = [
-    UserProfile(
-        userId=1, name="Alice",
-        interests=["Electronics", "Women's Clothing"],
-        browsingHistory=[1, 2, 11, 13],
-        searchHistory=["wireless headphones", "gaming monitor", "hoodie jacket"],
-    ),
-    UserProfile(
-        userId=2, name="Bob",
-        interests=["Electronics", "Men's Clothing"],
-        browsingHistory=[3, 4, 5, 7, 8],
-        searchHistory=["external hard drive", "SSD", "slim fit t-shirt"],
-    ),
-    UserProfile(
-        userId=3, name="Carol",
-        interests=["Jewellery", "Women's Clothing"],
-        browsingHistory=[17, 18, 11, 15],
-        searchHistory=["diamond earrings", "gold ring", "backpack"],
-    ),
-    UserProfile(
-        userId=4, name="David",
-        interests=["Men's Clothing"],
-        browsingHistory=[7, 9, 10],
-        searchHistory=["cotton jacket", "casual shirt", "slim fit"],
-    ),
-    UserProfile(
-        userId=5, name="Eve",
-        interests=["Electronics", "Jewellery"],
-        browsingHistory=[1, 4, 6, 17, 19],
-        searchHistory=["noise cancelling headphones", "SSD drive", "gold ring", "diamond"],
-    ),
+    UserProfile(userId=1, name="Alice",  interests=["Electronics", "Women's Clothing"], browsingHistory=[1, 2, 11, 13], searchHistory=["wireless headphones", "gaming monitor", "hoodie jacket"]),
+    UserProfile(userId=2, name="Bob",    interests=["Electronics", "Men's Clothing"],   browsingHistory=[3, 4, 5, 7, 8], searchHistory=["external hard drive", "SSD", "slim fit t-shirt"]),
+    UserProfile(userId=3, name="Carol",  interests=["Jewellery", "Women's Clothing"],   browsingHistory=[17, 18, 11, 15], searchHistory=["diamond earrings", "gold ring", "backpack"]),
+    UserProfile(userId=4, name="David",  interests=["Men's Clothing"],                  browsingHistory=[7, 9, 10], searchHistory=["cotton jacket", "casual shirt", "slim fit"]),
+    UserProfile(userId=5, name="Eve",    interests=["Electronics", "Jewellery"],        browsingHistory=[1, 4, 6, 17, 19], searchHistory=["noise cancelling headphones", "SSD drive", "gold ring", "diamond"]),
 ]
 
 USERS_BY_ID: dict[int, UserProfile] = {u.userId: u for u in USERS}

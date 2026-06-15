@@ -21,13 +21,6 @@ _transform = T.Compose([
 # ── OpenCV feature extraction ─────────────────────────────────────────────────
 
 def extract_visual_features(img_bytes: bytes) -> dict:
-    """
-    Returns low-level quality signals from the raw image bytes:
-      - blur_score   : Laplacian variance (higher = sharper)
-      - scratch_ratio: fraction of Canny edge pixels (proxy for surface damage)
-      - brightness   : mean pixel intensity 0-255
-      - contrast     : std-dev of pixel intensity
-    """
     arr = np.frombuffer(img_bytes, np.uint8)
     img = cv2.imdecode(arr, cv2.IMREAD_COLOR)
     if img is None:
@@ -52,11 +45,6 @@ def extract_visual_features(img_bytes: bytes) -> dict:
 # ── MobileNetV3 deep-feature confidence ───────────────────────────────────────
 
 def model_confidence(img_bytes: bytes) -> float:
-    """
-    Runs MobileNetV3-Small (ImageNet pretrained) and returns the top-1
-    softmax confidence as a proxy for 'how recognisable / intact the product is'.
-    A clearly identifiable, undamaged product scores higher.
-    """
     pil_img = Image.open(io.BytesIO(img_bytes)).convert("RGB")
     tensor  = _transform(pil_img).unsqueeze(0)
 
@@ -71,23 +59,12 @@ def model_confidence(img_bytes: bytes) -> float:
 # ── Combined score ────────────────────────────────────────────────────────────
 
 def compute_condition_score(img_bytes: bytes) -> tuple[float, dict]:
-    """
-    Fuses OpenCV signals + model confidence into a single 0-100 score.
-
-    Weights (hackathon prototype):
-        model_confidence  40 %   – structural intactness
-        blur_score        25 %   – sharpness (normalised, capped at 500)
-        scratch_ratio     20 %   – surface damage (inverted)
-        brightness        10 %   – exposure quality
-        contrast           5 %   – visual richness
-    """
     feats = extract_visual_features(img_bytes)
     conf  = model_confidence(img_bytes)
 
-    # Normalise each signal to [0, 1]
     blur_norm       = min(feats["blur_score"] / 500.0, 1.0)
-    scratch_norm    = max(0.0, 1.0 - feats["scratch_ratio"] / 0.15)   # 15 % edge = worst
-    brightness_norm = _bell(feats["brightness"], target=128, spread=80) # penalise too dark/bright
+    scratch_norm    = max(0.0, 1.0 - feats["scratch_ratio"] / 0.15)
+    brightness_norm = _bell(feats["brightness"], target=128, spread=80)
     contrast_norm   = min(feats["contrast"] / 80.0, 1.0)
 
     score = (
@@ -110,5 +87,4 @@ def compute_condition_score(img_bytes: bytes) -> tuple[float, dict]:
 
 
 def _bell(value: float, target: float, spread: float) -> float:
-    """Gaussian bell centred at `target`; returns 1.0 at centre, 0.0 at tails."""
     return float(np.exp(-0.5 * ((value - target) / spread) ** 2))

@@ -1,0 +1,25 @@
+# Maven build output
+target/
+
+# Git
+.git/
+.gitignore
+
+# IDE & OS
+.DS_Store
+.idea/
+.vscode/
+*.iml
+*.swp
+*.swo
+
+# Logs
+*.log
+
+# Docker scripts (not needed inside image)
+run-with-docker.sh
+run-with-docker.ps1
+DOCKER-RUN.md
+
+# Uploads (should be mounted as a volume at runtime)
+uploads/
