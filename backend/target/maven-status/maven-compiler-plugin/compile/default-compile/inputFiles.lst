@@ -1,4 +1,5 @@
 C:\Users\navee\OneDrive\Desktop\amazon-match\backend\src\main\java\com\amazon\rematch\config\BedrockConfig.java
+C:\Users\navee\OneDrive\Desktop\amazon-match\backend\src\main\java\com\amazon\rematch\config\DataSeeder.java
 C:\Users\navee\OneDrive\Desktop\amazon-match\backend\src\main\java\com\amazon\rematch\config\RestTemplateConfig.java
 C:\Users\navee\OneDrive\Desktop\amazon-match\backend\src\main\java\com\amazon\rematch\config\SecurityConfig.java
 C:\Users\navee\OneDrive\Desktop\amazon-match\backend\src\main\java\com\amazon\rematch\config\WebConfig.java
@@ -50,10 +51,6 @@ C:\Users\navee\OneDrive\Desktop\amazon-match\backend\src\main\java\com\amazon\re
 C:\Users\navee\OneDrive\Desktop\amazon-match\backend\src\main\java\com\amazon\rematch\repository\RecommendationRepository.java
 C:\Users\navee\OneDrive\Desktop\amazon-match\backend\src\main\java\com\amazon\rematch\repository\UserInterestRepository.java
 C:\Users\navee\OneDrive\Desktop\amazon-match\backend\src\main\java\com\amazon\rematch\repository\UserRepository.java
-C:\Users\navee\OneDrive\Desktop\amazon-match\backend\src\main\java\com\amazon\rematch\security\JwtAuthFilter.java
-C:\Users\navee\OneDrive\Desktop\amazon-match\backend\src\main\java\com\amazon\rematch\security\JwtUtil.java
-C:\Users\navee\OneDrive\Desktop\amazon-match\backend\src\main\java\com\amazon\rematch\security\UserDetailsServiceImpl.java
-C:\Users\navee\OneDrive\Desktop\amazon-match\backend\src\main\java\com\amazon\rematch\service\AuthService.java
 C:\Users\navee\OneDrive\Desktop\amazon-match\backend\src\main\java\com\amazon\rematch\service\BadgeService.java
 C:\Users\navee\OneDrive\Desktop\amazon-match\backend\src\main\java\com\amazon\rematch\service\BedrockService.java
 C:\Users\navee\OneDrive\Desktop\amazon-match\backend\src\main\java\com\amazon\rematch\service\ConditionAnalysisService.java

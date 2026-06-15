@@ -11,9 +11,11 @@ import com.amazon.rematch.entity.Product.ConditionType;
 import com.amazon.rematch.exception.ResourceNotFoundException;
 import com.amazon.rematch.repository.ListingRepository;
 import com.amazon.rematch.repository.ProductRepository;
+import com.amazon.rematch.repository.RecommendationRepository;
 import com.amazon.rematch.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -33,6 +35,8 @@ public class ListingService {
     private final ConditionAnalysisService conditionAnalysisService;
     private final ProductRepository        productRepository;
     private final UserRepository           userRepository;
+    private final RecommendationRepository recommendationRepository;
+    private final ApplicationContext       applicationContext;
 
     // ── POST /rematch/listings ─────────────────────────────────────────────────
 
@@ -162,20 +166,24 @@ public class ListingService {
             // Resolve seller location from User table if available
             Double lat = null, lon = null;
             String city = null, state = null, country = "India";
+            Long sellerUserId = null;
             if (listing.getSellerId() != null && !listing.getSellerId().isBlank()) {
                 String sellerId = listing.getSellerId().trim();
                 Optional<User> userOpt = Optional.empty();
                 try {
                     long sellerIdLong = Long.parseLong(sellerId);
+                    sellerUserId = sellerIdLong;
                     userOpt = userRepository.findById(sellerIdLong);
                 } catch (NumberFormatException ignored) {
                     userOpt = Optional.empty();
                 }
                 if (userOpt.isEmpty()) {
                     userOpt = userRepository.findByEmail(sellerId);
+                    userOpt.ifPresent(u -> {});
                 }
                 if (userOpt.isPresent()) {
                     User u = userOpt.get();
+                    sellerUserId = u.getId();
                     lat = u.getLatitude(); lon = u.getLongitude();
                     city = u.getCity(); state = u.getState(); country = u.getCountry();
                 }
@@ -207,8 +215,32 @@ public class ListingService {
             product.setAvailable(true);
             product.setLatitude(lat); product.setLongitude(lon);
             product.setCity(city); product.setState(state); product.setCountry(country);
-            productRepository.save(product);
-            log.info("Listing {} converted to Product for seller {}", listing.getId(), listing.getSellerId());
+            Product savedProduct = productRepository.save(product);
+            log.info("Listing {} converted to Product {} for seller {}", listing.getId(), savedProduct.getId(), listing.getSellerId());
+
+            // Push the new product into all OTHER users' recommendations immediately
+            // so it appears in their ReMatch feed without needing a page refresh.
+            // Use ApplicationContext to avoid circular dependency with RecommendationService.
+            final Long finalSellerUserId = sellerUserId;
+            try {
+                RecommendationService recService = applicationContext.getBean(RecommendationService.class);
+                List<User> allUsers = userRepository.findAll();
+                for (User u : allUsers) {
+                    // Skip the seller — they don't get recommendations for their own item
+                    if (finalSellerUserId != null && u.getId().equals(finalSellerUserId)) continue;
+                    // Skip if already recommended
+                    if (recommendationRepository.findByUserIdAndProductId(u.getId(), savedProduct.getId()).isPresent()) continue;
+                    try {
+                        recService.generateRecommendations(u.getId(), List.of(savedProduct));
+                    } catch (Exception ex) {
+                        log.warn("Could not push product {} to user {}: {}", savedProduct.getId(), u.getId(), ex.getMessage());
+                    }
+                }
+                log.info("Product {} pushed to recommendations for {} users", savedProduct.getId(), allUsers.size());
+            } catch (Exception ex) {
+                log.warn("Recommendation push failed for product {}: {}", savedProduct.getId(), ex.getMessage());
+            }
+
         } catch (Exception e) {
             log.error("Failed to convert listing {} to product: {}", listing.getId(), e.getMessage());
         }

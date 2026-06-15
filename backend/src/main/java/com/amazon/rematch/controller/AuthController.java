@@ -1,43 +1,62 @@
 package com.amazon.rematch.controller;
 
 import com.amazon.rematch.dto.AuthResponse;
-import com.amazon.rematch.dto.LoginRequest;
-import com.amazon.rematch.dto.RegisterRequest;
-import com.amazon.rematch.dto.UpdateProfileRequest;
-import com.amazon.rematch.service.AuthService;
-import jakarta.validation.Valid;
+import com.amazon.rematch.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/auth")
 @RequiredArgsConstructor
 public class AuthController {
 
-    private final AuthService authService;
+    private final UserRepository userRepository;
 
-    @PostMapping("/register")
-    public ResponseEntity<AuthResponse> register(@Valid @RequestBody RegisterRequest req) {
-        return ResponseEntity.ok(authService.register(req));
+    /**
+     * GET /auth/users
+     * Returns all demo users. Frontend shows these in a picker — no password needed.
+     */
+    @GetMapping("/users")
+    public ResponseEntity<List<AuthResponse>> getUsers() {
+        List<AuthResponse> users = userRepository.findAll().stream()
+            .map(u -> AuthResponse.builder()
+                .id(u.getId())
+                .name(u.getName())
+                .email(u.getEmail())
+                .phone(u.getPhone())
+                .city(u.getCity())
+                .state(u.getState())
+                .country(u.getCountry())
+                .latitude(u.getLatitude())
+                .longitude(u.getLongitude())
+                .role(u.getRole().name())
+                .build())
+            .toList();
+        return ResponseEntity.ok(users);
     }
 
-    @PostMapping("/login")
-    public ResponseEntity<AuthResponse> login(@Valid @RequestBody LoginRequest req) {
-        return ResponseEntity.ok(authService.login(req));
-    }
-
-    @GetMapping("/profile")
-    public ResponseEntity<AuthResponse> profile(@AuthenticationPrincipal UserDetails userDetails) {
-        return ResponseEntity.ok(authService.profile(userDetails.getUsername()));
-    }
-
-    @PutMapping("/profile")
-    public ResponseEntity<AuthResponse> updateProfile(
-            @AuthenticationPrincipal UserDetails userDetails,
-            @RequestBody UpdateProfileRequest req) {
-        return ResponseEntity.ok(authService.updateProfile(userDetails.getUsername(), req));
+    /**
+     * GET /auth/users/{id}
+     * Returns a single user by ID. Used on page load to rehydrate the session.
+     */
+    @GetMapping("/users/{id}")
+    public ResponseEntity<AuthResponse> getUserById(@PathVariable Long id) {
+        return userRepository.findById(id)
+            .map(u -> ResponseEntity.ok(AuthResponse.builder()
+                .id(u.getId())
+                .name(u.getName())
+                .email(u.getEmail())
+                .phone(u.getPhone())
+                .city(u.getCity())
+                .state(u.getState())
+                .country(u.getCountry())
+                .latitude(u.getLatitude())
+                .longitude(u.getLongitude())
+                .role(u.getRole().name())
+                .build()))
+            .orElse(ResponseEntity.notFound().build());
     }
 }

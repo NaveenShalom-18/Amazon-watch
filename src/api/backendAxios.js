@@ -4,10 +4,5 @@ const backendApi = axios.create({
   baseURL: process.env.REACT_APP_BACKEND_URL || 'http://localhost:8080',
 });
 
-backendApi.interceptors.request.use((config) => {
-  const token = localStorage.getItem('token');
-  if (token) config.headers.Authorization = `Bearer ${token}`;
-  return config;
-});
-
+// No JWT — no Authorization header needed. All endpoints are open.
 export default backendApi;

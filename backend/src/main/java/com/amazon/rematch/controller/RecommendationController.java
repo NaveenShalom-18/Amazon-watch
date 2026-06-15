@@ -1,12 +1,9 @@
 package com.amazon.rematch.controller;
 
 import com.amazon.rematch.dto.*;
-import com.amazon.rematch.repository.UserRepository;
 import com.amazon.rematch.service.RecommendationService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -17,7 +14,6 @@ import java.util.List;
 public class RecommendationController {
 
     private final RecommendationService recommendationService;
-    private final UserRepository        userRepository;
 
     /** GET /recommendations/{userId} — active recommendations, highest score first */
     @GetMapping("/{userId}")
@@ -27,11 +23,7 @@ public class RecommendationController {
                 recommendationService.getRecommendationsForUser(userId)));
     }
 
-    /**
-     * GET /recommendations/{userId}/nearby-products?top=10
-     * Ring-expansion: finds products near the user (25 → 50 → 100 → nationwide).
-     * Each product scored: 70% interest + 30% distance.
-     */
+    /** GET /recommendations/{userId}/nearby-products?top=10 */
     @GetMapping("/{userId}/nearby-products")
     public ResponseEntity<ApiResponse<List<RecommendationResponse>>> getNearbyProducts(
             @PathVariable Long userId,
@@ -40,7 +32,7 @@ public class RecommendationController {
                 recommendationService.getNearbyProductsForUser(userId, top)));
     }
 
-    /** POST /recommendations/{userId}/generate — score + persist fresh recommendations */
+    /** POST /recommendations/{userId}/generate */
     @PostMapping("/{userId}/generate")
     public ResponseEntity<ApiResponse<List<RecommendationResponse>>> generate(
             @PathVariable Long userId) {
@@ -59,20 +51,18 @@ public class RecommendationController {
     }
 
     /**
-     * GET /recommendations/nearby-users/{productId}
-     * Ring expansion: 25 → 50 → 100 → nationwide.
-     * Each user scored: 70 % interest + 30 % distance.
+     * GET /recommendations/nearby-users/{productId}?userId=<id>
+     * userId passed as query param — no JWT needed.
      */
     @GetMapping("/nearby-users/{productId}")
     public ResponseEntity<ApiResponse<List<NearbyUserResponse>>> getNearbyUsers(
             @PathVariable Long productId,
-            @AuthenticationPrincipal UserDetails userDetails) {
-        Long userId = resolveUserId(userDetails);
+            @RequestParam Long userId) {
         return ResponseEntity.ok(ApiResponse.ok(
                 recommendationService.getNearbyUsers(productId, userId)));
     }
 
-    /** POST /recommendations/browse?userId=&category= — record a browse event */
+    /** POST /recommendations/browse?userId=&category= */
     @PostMapping("/browse")
     public ResponseEntity<ApiResponse<Void>> recordBrowse(
             @RequestParam Long userId,
@@ -81,7 +71,7 @@ public class RecommendationController {
         return ResponseEntity.ok(ApiResponse.ok(null));
     }
 
-    /** POST /recommendations/purchase?userId=&category= — record a purchase (3× weight) */
+    /** POST /recommendations/purchase?userId=&category= */
     @PostMapping("/purchase")
     public ResponseEntity<ApiResponse<Void>> recordPurchase(
             @RequestParam Long userId,
@@ -90,19 +80,11 @@ public class RecommendationController {
         return ResponseEntity.ok(ApiResponse.ok(null));
     }
 
-    /** GET /recommendations/{id}/explain — Bedrock AI explanation for one recommendation */
+    /** GET /recommendations/{id}/explain */
     @GetMapping("/{id}/explain")
     public ResponseEntity<ApiResponse<BedrockExplanationResponse>> explain(
             @PathVariable Long id) {
         return ResponseEntity.ok(ApiResponse.ok(
                 recommendationService.explainRecommendation(id)));
-    }
-
-    // ── Helper ────────────────────────────────────────────────────────────────
-
-    private Long resolveUserId(UserDetails userDetails) {
-        return userRepository.findByEmail(userDetails.getUsername())
-                .orElseThrow(() -> new IllegalStateException("Authenticated user not found"))
-                .getId();
     }
 }

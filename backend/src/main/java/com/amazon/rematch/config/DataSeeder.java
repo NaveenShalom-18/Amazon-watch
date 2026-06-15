@@ -7,7 +7,6 @@ import com.amazon.rematch.repository.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.CommandLineRunner;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
@@ -18,11 +17,10 @@ import java.util.List;
 @RequiredArgsConstructor
 public class DataSeeder implements CommandLineRunner {
 
-    private final ProductRepository     productRepository;
-    private final UserRepository        userRepository;
+    private final ProductRepository        productRepository;
+    private final UserRepository           userRepository;
     private final RecommendationRepository recommendationRepository;
     private final UserInterestRepository   userInterestRepository;
-    private final PasswordEncoder          passwordEncoder;
 
     @Override
     public void run(String... args) {
@@ -190,37 +188,26 @@ public class DataSeeder implements CommandLineRunner {
     // ── Users ─────────────────────────────────────────────────────────────────
 
     private void seedUsers() {
-        // User 1 — Delhi (Account A)
-        if (userRepository.findByEmail("alice@rematch.in").isEmpty()) {
-            User alice = new User();
-            alice.setName("Alice Sharma");
-            alice.setEmail("alice@rematch.in");
-            alice.setPassword(passwordEncoder.encode("password123"));
-            alice.setRole(Role.USER);
-            alice.setCity("New Delhi");
-            alice.setState("Delhi");
-            alice.setCountry("India");
-            alice.setLatitude(28.6139);
-            alice.setLongitude(77.2090);
-            userRepository.save(alice);
-            log.info("DataSeeder: created user alice@rematch.in (Delhi)");
-        }
+        seedUser("testuser1@demo.com", "TestUser1", "New Delhi",   "Delhi",       "India", 28.6139, 77.2090);
+        seedUser("testuser2@demo.com", "TestUser2", "Mumbai",      "Maharashtra", "India", 19.0760, 72.8777);
+        seedUser("testuser3@demo.com", "TestUser3", "Bengaluru",   "Karnataka",   "India", 12.9716, 77.5946);
+    }
 
-        // User 2 — Mumbai (Account B — different location, ~1400 km from Delhi)
-        if (userRepository.findByEmail("bob@rematch.in").isEmpty()) {
-            User bob = new User();
-            bob.setName("Bob Patel");
-            bob.setEmail("bob@rematch.in");
-            bob.setPassword(passwordEncoder.encode("password123"));
-            bob.setRole(Role.USER);
-            bob.setCity("Mumbai");
-            bob.setState("Maharashtra");
-            bob.setCountry("India");
-            bob.setLatitude(19.0760);
-            bob.setLongitude(72.8777);
-            userRepository.save(bob);
-            log.info("DataSeeder: created user bob@rematch.in (Mumbai)");
-        }
+    private void seedUser(String email, String name, String city, String state, String country,
+                          double lat, double lon) {
+        if (userRepository.findByEmail(email).isPresent()) return;
+        User u = new User();
+        u.setName(name);
+        u.setEmail(email);
+        u.setPassword("demo"); // no real auth — value is irrelevant
+        u.setRole(Role.USER);
+        u.setCity(city);
+        u.setState(state);
+        u.setCountry(country);
+        u.setLatitude(lat);
+        u.setLongitude(lon);
+        userRepository.save(u);
+        log.info("DataSeeder: created user {} ({})", name, city);
     }
 
     // ── Helper ────────────────────────────────────────────────────────────────

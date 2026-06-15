@@ -66,7 +66,7 @@ const SECTIONS = [
   { key: 'recommended', label: 'Recommended',        icon: <VerifiedUser sx={{ fontSize: 16 }} />,  color: '#FF9900' },
   { key: 'returned',    label: 'Returned Products',  icon: <Autorenew sx={{ fontSize: 16 }} />,     color: '#0066c0' },
   { key: 'refurbished', label: 'Refurbished',        icon: <BuildCircle sx={{ fontSize: 16 }} />,   color: '#067D62' },
-  { key: 'listed',      label: 'Resold Items',       icon: <StorefrontRounded sx={{ fontSize: 16 }} />, color: '#2e7d32' },
+  { key: 'listed',      label: 'My Resold Items',  icon: <StorefrontRounded sx={{ fontSize: 16 }} />, color: '#2e7d32' },
 ];
 
 const STATS = [
@@ -129,7 +129,7 @@ const Section = ({ sectionKey, label, icon, color, loading, items }) => {
           : !displayedItems.length
             ? (
               <Grid item xs={12}>
-                <EmptySection label={label} color={color} />
+                <EmptySection label={label} color={color} sectionKey={sectionKey} />
               </Grid>
             )
             : displayedItems.map((product) => (
@@ -145,7 +145,7 @@ const Section = ({ sectionKey, label, icon, color, loading, items }) => {
 
 // ─── Empty state ──────────────────────────────────────────────────────────────
 
-const EmptySection = ({ label, color }) => (
+const EmptySection = ({ label, color, sectionKey }) => (
   <Box sx={{
     textAlign: 'center', py: 6, px: 3,
     border: '2px dashed #e8e8e8', borderRadius: '16px',
@@ -154,7 +154,9 @@ const EmptySection = ({ label, color }) => (
     <Autorenew sx={{ fontSize: 40, color: '#ddd', mb: 1 }} />
     <Typography sx={{ fontWeight: 700, color: '#555', mb: 0.5 }}>No {label} yet</Typography>
     <Typography sx={{ fontSize: '0.82rem', color: '#aaa' }}>
-      Check back soon — new items are listed daily.
+      {sectionKey === 'listed'
+        ? "You haven't sold any items yet. List a product to get started."
+        : 'Check back soon — new items are listed daily.'}
     </Typography>
   </Box>
 );
@@ -201,10 +203,15 @@ const ReMatch = () => {
       .finally(() => setRecommendedLoading(false));
   }, [user?.id]);
 
-  // Fetch public "listed" (resold) items so others can see resold products
+  // Fetch the logged-in user's own "listed" (resold) items
   useEffect(() => {
+    if (!user?.id) {
+      setListedItems([]);
+      setListedLoading(false);
+      return;
+    }
     setListedLoading(true);
-    backendApi.get('/rematch/listings?status=LISTED')
+    backendApi.get(`/rematch/listings?sellerId=${user.id}`)
       .then((res) => {
         const data = res.data?.data;
         if (Array.isArray(data)) {
@@ -221,6 +228,7 @@ const ReMatch = () => {
             lifeScore: l.lifeScore || 80,
             aiVerified: Boolean(l.aiVerified),
             category: l.category || 'General',
+            status: l.status,
           })));
         } else {
           setListedItems([]);
@@ -228,7 +236,7 @@ const ReMatch = () => {
       })
       .catch(() => setListedItems([]))
       .finally(() => setListedLoading(false));
-  }, []);
+  }, [user?.id]);
 
   const getTabBadgeCount = (key) => {
     if (!key) return null;
